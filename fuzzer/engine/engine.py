@@ -185,7 +185,7 @@ class EvolutionaryFuzzingEngine(object):
                 g += 1
         except BugIdentified as e:
             msg = 'Stopping Engine after Detector raised {}'.format(e)
-            self.logger.warn(msg)
+            self.logger.exception(msg)
         except Exception as e:
             # Log exception info.
             msg = '{} exception is catched'.format(type(e).__name__)
