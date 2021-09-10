@@ -16,6 +16,8 @@ import os
 
 from utils import settings
 
+from detectors import BugIdentified
+
 from .components import Individual, Population
 from .plugin_interfaces.operators import Selection, Crossover, Mutation
 from .plugin_interfaces.analysis import OnTheFlyAnalysis
@@ -174,6 +176,9 @@ class EvolutionaryFuzzingEngine(object):
             msg = '{} exception is catched'.format(type(e).__name__)
             self.logger.exception(msg)
             raise e
+        except BugIdentified as e:
+            msg = 'Stopping Engine after Detector raised {}'.format(e)
+            self.logger.warn(msg)
         finally:
             # Perform the analysis post processing.
             for a in self.analysis:
