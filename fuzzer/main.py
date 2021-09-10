@@ -305,8 +305,8 @@ def launch_argument_parser():
                         dest="max_symbolic_execution", type=int)
 
     parser.add_argument("--run-until-first-bug",
-                        type=bool, action="store_true",
                         help="Stop the fuzzer after the first bug was discovered",
+                        action="store_true",
                         default=settings.RUN_UNTIL_FIRST_BUG)
 
     version = "ConFuzzius - Version 0.0.2 - "
@@ -371,7 +371,7 @@ def launch_argument_parser():
     if args.rpc_port:
         settings.RPC_PORT = args.rpc_port
 
-    if args.run_until_first_bug:
+    if args.run_until_first_bug is not None:
         settings.RUN_UNTIL_FIRST_BUG = args.run_until_first_bug
 
     return args
