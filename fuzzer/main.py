@@ -162,7 +162,7 @@ class Fuzzer:
         self.env.execution_begin = time.time()
         self.env.population = population
 
-        engine.run(ng=settings.GENERATIONS, run_until_first_bug=settings.RUN_UNTIL_FIRST_BUG)
+        engine.run(ng=settings.GENERATIONS)
 
         if self.env.args.cfg:
             if self.env.args.source:
