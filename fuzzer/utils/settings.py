@@ -41,3 +41,5 @@ RPC_PORT = 8545
 REMOTE_FUZZING = False
 # True = Environmental instrumentation enabled, False = Environmental instrumentation disabled
 ENVIRONMENTAL_INSTRUMENTATION = True
+# run until first bug is detected
+RUN_UNTIL_FIRST_BUG = False

@@ -62,7 +62,7 @@ class Fuzzer:
                                       solver=self.solver,
                                       results=self.results,
                                       symbolic_taint_analyzer=SymbolicTaintAnalyzer(),
-                                      detector_executor=DetectorExecutor(source_map, get_function_signature_mapping(abi)),
+                                      detector_executor=DetectorExecutor(source_map, get_function_signature_mapping(abi), settings.RUN_UNTIL_FIRST_BUG),
                                       interface=self.interface,
                                       overall_pcs=self.overall_pcs,
                                       overall_jumpis=self.overall_jumpis,
@@ -162,7 +162,7 @@ class Fuzzer:
         self.env.execution_begin = time.time()
         self.env.population = population
 
-        engine.run(ng=settings.GENERATIONS)
+        engine.run(ng=settings.GENERATIONS, run_until_first_bug=settings.RUN_UNTIL_FIRST_BUG)
 
         if self.env.args.cfg:
             if self.env.args.source:
@@ -181,8 +181,7 @@ def main():
     # Check if contract has already been analyzed
     if args.results and os.path.exists(args.results):
         os.remove(args.results)
-        logger.info("Contract "+str(args.source)+" has already been analyzed: "+str(args.results))
-        sys.exit(0)
+        logger.warning("Contract "+str(args.source)+" has already been analyzed: "+str(args.results) + " => continuing anyway!")
 
     # Initializing random
     if args.seed:
@@ -305,6 +304,11 @@ def launch_argument_parser():
                         help="Maximum number of symbolic execution calls before restting population (default: " + str(settings.MAX_SYMBOLIC_EXECUTION) + ")", action="store",
                         dest="max_symbolic_execution", type=int)
 
+    parser.add_argument("--run-until-first-bug",
+                        type=bool, action="store_true",
+                        help="Stop the fuzzer after the first bug was discovered",
+                        default=settings.RUN_UNTIL_FIRST_BUG)
+
     version = "ConFuzzius - Version 0.0.2 - "
     version += "\"By three methods we may learn wisdom:\n"
     version += "First, by reflection, which is noblest;\n"
@@ -366,6 +370,9 @@ def launch_argument_parser():
         settings.RPC_HOST = args.rpc_host
     if args.rpc_port:
         settings.RPC_PORT = args.rpc_port
+
+    if args.run_until_first_bug:
+        settings.RUN_UNTIL_FIRST_BUG = args.run_until_first_bug
 
     return args
 
