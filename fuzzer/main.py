@@ -305,6 +305,9 @@ def launch_argument_parser():
                         action="store_true",
                         default=settings.RUN_UNTIL_FIRST_BUG)
 
+    parser.add_argument("--max-individual-length",
+                        default=settings.MAX_INDIVIDUAL_LENGTH)
+
     version = "ConFuzzius - Version 0.0.1 - "
     version += "\"By three methods we may learn wisdom:\n"
     version += "First, by reflection, which is noblest;\n"
@@ -341,6 +344,9 @@ def launch_argument_parser():
         settings.PROBABILITY_CROSSOVER = args.probability_crossover
     if args.probability_mutation:
         settings.PROBABILITY_MUTATION = args.probability_mutation
+
+    if args.max_individual_length is not None:
+        settings.MAX_INDIVIDUAL_LENGTH = int(args.max_individual_length)
 
     if args.data_dependency == None:
         args.data_dependency = 1
