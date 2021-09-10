@@ -68,11 +68,11 @@ class DetectorExecutor:
                 return True
         return False
 
-    def add_error(self, errors, pc, type_, individual, mfe, detector, source_map):
+    def add_error(self, errors, pc, type, individual, mfe, detector, source_map):
         error = {
             "swc_id": detector.swc_id,
             "severity": detector.severity,
-            "type": type_,
+            "type": type,
             "individual": individual.solution,
             "time": time.time() - mfe.execution_begin,
             "pc": pc
@@ -88,7 +88,7 @@ class DetectorExecutor:
         if not pc in errors:
             errors[pc] = [error]
             return True
-        elif not DetectorExecutor.error_exists(errors[pc], type_):
+        elif not DetectorExecutor.error_exists(errors[pc], type):
             errors[pc].append(error)
             return True
         return False
