@@ -171,14 +171,14 @@ class EvolutionaryFuzzingEngine(object):
                         a.register_step(g=g, population=self.population, engine=self)
 
                 g += 1
+        except BugIdentified as e:
+            msg = 'Stopping Engine after Detector raised {}'.format(e)
+            self.logger.warn(msg)
         except Exception as e:
             # Log exception info.
             msg = '{} exception is catched'.format(type(e).__name__)
             self.logger.exception(msg)
             raise e
-        except BugIdentified as e:
-            msg = 'Stopping Engine after Detector raised {}'.format(e)
-            self.logger.warn(msg)
         finally:
             # Perform the analysis post processing.
             for a in self.analysis:
