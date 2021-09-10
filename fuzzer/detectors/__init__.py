@@ -47,6 +47,7 @@ class DetectorExecutor:
         self.unprotected_selfdestruct_detector = UnprotectedSelfdestructDetector()
 
         self.raise_on_error_found = raise_on_error_found
+        self.__cached_exception = None
 
     def initialize_detectors(self):
         self.integer_overflow_detector.init()
@@ -82,8 +83,8 @@ class DetectorExecutor:
             error["column"] = source_map.get_location(pc)['begin']['column'] + 1
             error["source_code"] = source_map.get_buggy_line(pc)
 
-        if self.raise_on_error_found:
-            raise BugIdentified(error)
+        if self.raise_on_error_found and self.__cached_exception is None:
+            self.__cached_exception = BugIdentified(error)
 
         if not pc in errors:
             errors[pc] = [error]
@@ -338,3 +339,8 @@ class DetectorExecutor:
             self.logger.title(color+"Transaction sequence:")
             self.logger.title(color+"-----------------------------------------------------")
             print_individual_solution_as_transaction(self.logger, individual.solution, color, self.function_signature_mapping)
+
+        if self.__cached_exception:
+            e = self.__cached_exception
+            del self.__cached_exception
+            raise e
