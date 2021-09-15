@@ -62,7 +62,7 @@ class Fuzzer:
                                       solver=self.solver,
                                       results=self.results,
                                       symbolic_taint_analyzer=SymbolicTaintAnalyzer(),
-                                      detector_executor=DetectorExecutor(source_map, get_function_signature_mapping(abi), settings.RUN_UNTIL_FIRST_BUG),
+                                      detector_executor=DetectorExecutor(source_map, get_function_signature_mapping(abi), settings),
                                       interface=self.interface,
                                       overall_pcs=self.overall_pcs,
                                       overall_jumpis=self.overall_jumpis,
@@ -309,7 +309,10 @@ def launch_argument_parser():
                         action="store_true",
                         default=settings.RUN_UNTIL_FIRST_BUG)
 
-    version = "ConFuzzius - Version 0.0.2 - "
+    parser.add_argument("--disable-detectors", type=str)
+    parser.add_argument("--enable-detectors", type=str)
+
+    version = "ConFuzzius - Version 0.0.1 - "
     version += "\"By three methods we may learn wisdom:\n"
     version += "First, by reflection, which is noblest;\n"
     version += "Second, by imitation, which is easiest;\n"
@@ -373,6 +376,71 @@ def launch_argument_parser():
 
     if args.run_until_first_bug is not None:
         settings.RUN_UNTIL_FIRST_BUG = args.run_until_first_bug
+
+    if args.disable_detectors is not None:
+        d = args.disable_detectors
+        if ',' in d:
+            d = list(x.strip().upper() for x in d.split(','))
+        else:
+            d = [d.strip().upper()]
+
+        disable_all = False
+        if "ALL" in d:
+            disable_all = True
+
+        if "ARBITRARY_MEM" in d:
+            settings.DETECT_ARBITRARY_MEM = False
+        if "ASSERTION_FAIL" in d:
+            settings.DETECT_ASSERTION_FAIL = False
+        if "INTEGER_OVERFLOW" in d:
+            settings.DETECT_INTEGER_OVERFLOW = False
+        if "REENTRANCY" in d:
+            settings.DETECT_REENTRANCY = False
+        if "TRANSACTION_ORDER_DEPENDENCY" in d:
+            settings.DETECT_TRANSACTION_ORDER_DEPENDENCY = False
+        if "BLOCK_DEPENDENCY" in d:
+            settings.DETECT_BLOCK_DEPENDENCY = False
+        if "UNHANDLED_EXCEPTION" in d:
+            settings.DETECT_UNHANDLED_EXCEPTION = False
+        if "UNSAFE_DELEGATECALL" in d:
+            settings.DETECT_UNSAFE_DELEGATECALL = False
+        if "LEAKING_ETHER" in d:
+            settings.DETECT_LEAKING_ETHER = False
+        if "LOCKING_ETHER" in d:
+            settings.DETECT_LOCKING_ETHER = False
+        if "SELFDESTRUCT" in d:
+            settings.DETECT_SELFDESTRUCT = False
+    
+    if args.enable_detectors is not None:
+        d = args.enable_detectors
+        if ',' in d:
+            d = list(x.strip().upper() for x in d.split(','))
+        else:
+            d = [d.strip().upper()]
+
+        if "ARBITRARY_MEM" in d:
+            settings.DETECT_ARBITRARY_MEM = True
+        if "ASSERTION_FAIL" in d:
+            settings.DETECT_ASSERTION_FAIL = True
+        if "INTEGER_OVERFLOW" in d:
+            settings.DETECT_INTEGER_OVERFLOW = True
+        if "REENTRANCY" in d:
+            settings.DETECT_REENTRANCY = True
+        if "TRANSACTION_ORDER_DEPENDENCY" in d:
+            settings.DETECT_TRANSACTION_ORDER_DEPENDENCY = True
+        if "BLOCK_DEPENDENCY" in d:
+            settings.DETECT_BLOCK_DEPENDENCY = True
+        if "UNHANDLED_EXCEPTION" in d:
+            settings.DETECT_UNHANDLED_EXCEPTION = True
+        if "UNSAFE_DELEGATECALL" in d:
+            settings.DETECT_UNSAFE_DELEGATECALL = True
+        if "LEAKING_ETHER" in d:
+            settings.DETECT_LEAKING_ETHER = True
+        if "LOCKING_ETHER" in d:
+            settings.DETECT_LOCKING_ETHER = True
+        if "SELFDESTRUCT" in d:
+            settings.DETECT_SELFDESTRUCT = True
+
 
     return args
 
