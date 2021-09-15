@@ -388,27 +388,27 @@ def launch_argument_parser():
         if "ALL" in d:
             disable_all = True
 
-        if "ARBITRARY_MEM" in d:
+        if disable_all or "ARBITRARY_MEM" in d:
             settings.DETECT_ARBITRARY_MEM = False
-        if "ASSERTION_FAIL" in d:
+        if disable_all or "ASSERTION_FAIL" in d:
             settings.DETECT_ASSERTION_FAIL = False
-        if "INTEGER_OVERFLOW" in d:
+        if disable_all or "INTEGER_OVERFLOW" in d:
             settings.DETECT_INTEGER_OVERFLOW = False
-        if "REENTRANCY" in d:
+        if disable_all or "REENTRANCY" in d:
             settings.DETECT_REENTRANCY = False
-        if "TRANSACTION_ORDER_DEPENDENCY" in d:
+        if disable_all or "TRANSACTION_ORDER_DEPENDENCY" in d:
             settings.DETECT_TRANSACTION_ORDER_DEPENDENCY = False
-        if "BLOCK_DEPENDENCY" in d:
+        if disable_all or "BLOCK_DEPENDENCY" in d:
             settings.DETECT_BLOCK_DEPENDENCY = False
-        if "UNHANDLED_EXCEPTION" in d:
+        if disable_all or "UNHANDLED_EXCEPTION" in d:
             settings.DETECT_UNHANDLED_EXCEPTION = False
-        if "UNSAFE_DELEGATECALL" in d:
+        if disable_all or "UNSAFE_DELEGATECALL" in d:
             settings.DETECT_UNSAFE_DELEGATECALL = False
-        if "LEAKING_ETHER" in d:
+        if disable_all or "LEAKING_ETHER" in d:
             settings.DETECT_LEAKING_ETHER = False
-        if "LOCKING_ETHER" in d:
+        if disable_all or "LOCKING_ETHER" in d:
             settings.DETECT_LOCKING_ETHER = False
-        if "SELFDESTRUCT" in d:
+        if disable_all or "SELFDESTRUCT" in d:
             settings.DETECT_SELFDESTRUCT = False
     
     if args.enable_detectors is not None:
