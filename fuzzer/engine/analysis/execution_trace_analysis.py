@@ -206,6 +206,10 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
                         branches[jumpi_pc][hex(destination)] = False
                         branches[jumpi_pc][hex(instruction["pc"] + 1)] = True
                     else:
+                        if jumpi_condition != 1:
+                            self.logger.warning("normalizing jumpi_condition to 1 at PC {:#x}".format(instruction["pc"]))
+                            # normalize branch condition in case it becomes something else...
+                            jumpi_condition = 1
                         # jump to destination
                         branches[jumpi_pc][hex(destination)] = True
                         branches[jumpi_pc][hex(instruction["pc"] + 1)] = False
