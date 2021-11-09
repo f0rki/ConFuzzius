@@ -141,6 +141,8 @@ class ControlFlowGraph:
 
     def save_control_flow_graph(self, filename, extension):
         f = open(filename+'.dot', 'w')
+        bb_total = 0
+        bb_visit = 0
         f.write('digraph confuzzius_cfg {\n')
         f.write('rankdir = TB;\n')
         f.write('size = "240"\n')
@@ -150,6 +152,7 @@ class ControlFlowGraph:
             if len(hex(list(basic_block.get_instructions().keys())[-1])) > address_width:
                 address_width = len(hex(list(basic_block.get_instructions().keys())[-1]))
         for basic_block in self.vertices.values():
+            bb_total += 1
             # Draw vertices
             label = '"'+hex(basic_block.get_start_address())+'"[label="'
             for address in basic_block.get_instructions():
@@ -157,12 +160,14 @@ class ControlFlowGraph:
             visited_basic_block = False
             for pc in self.error_pcs:
                 if pc in basic_block.get_instructions().keys():
+                    bb_visit += 1
                     f.write(label+'",style=filled,fillcolor=red];\n')
                     visited_basic_block = True
                     break
             if not visited_basic_block:
                 if  basic_block.get_start_address() in self.visited_pcs and basic_block.get_end_address() in self.visited_pcs:
                     f.write(label+'",style=filled,fillcolor=gray];\n')
+                    bb_visit += 1
                 else:
                     f.write(label+'",style=filled,fillcolor=white];\n')
             # Draw edges
@@ -187,6 +192,9 @@ class ControlFlowGraph:
             print("Graphviz is not available. Please install Graphviz from https://www.graphviz.org/download/.")
         else:
             os.remove(filename+".dot")
+
+        with open(filename+".bb_cov", "w") as fp:
+            fp.write(str(bb_visit/bb_total))
 
     opcode_to_mnemonic = {
         'homestead': {
