@@ -71,7 +71,7 @@ def compile(solc_version, evm_version, source_code_file):
         source_code = file.read()
     try:
         if not str(solc_version).startswith("v"):
-            solc_version = "v"+str(solc_version.truncate())
+            solc_version = "v"+str(solc_version.strip())
         if not solc_version in solcx.get_installed_solc_versions():
             solcx.install_solc(solc_version)
         solcx.set_solc_version(solc_version, True)

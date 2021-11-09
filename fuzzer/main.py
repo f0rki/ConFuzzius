@@ -33,7 +33,7 @@ from utils.utils import initialize_logger, compile, get_interface_from_abi, get_
 from utils.control_flow_graph import ControlFlowGraph
 
 class Fuzzer:
-    def __init__(self, contract_name, abi, deployment_bytecode, runtime_bytecode, test_instrumented_evm, blockchain_state, solver, args, seed, source_map=None):
+    def __init__(self, contract_name, abi, deployment_bytecode, runtime_bytecode, test_instrumented_evm, blockchain_state, solver, args, seed, allow_symbolic_callers=True, source_map=None):
         global logger
 
         logger = initialize_logger("Fuzzer  ")
@@ -71,7 +71,8 @@ class Fuzzer:
                                       args=args,
                                       seed=seed,
                                       cfg=cfg,
-                                      abi=abi)
+                                      abi=abi,
+                                      allow_symbolic_callers=allow_symbolic_callers)
 
     def run(self):
         contract_address = None
@@ -195,6 +196,11 @@ def main():
     random.seed(seed)
     logger.title("Initializing seed to %s", seed)
 
+    # option to disable symbolic caller
+    allow_symbolic_callers = not args.no_symbolic_caller
+    if not allow_symbolic_callers:
+        logger.info("disabling symbolic callers")
+
     # Initialize EVM
     instrumented_evm = InstrumentedEVM(settings.RPC_HOST, settings.RPC_PORT)
     instrumented_evm.set_vm_by_name(settings.EVM_VERSION)
@@ -219,6 +225,10 @@ def main():
 
     # Compile source code to get deployment bytecode, runtime bytecode and ABI
     if args.source:
+        abi = None
+        bytecode_runtime = None
+        bytecode_deploy = None
+        contract_name = ""
         if args.source.endswith(".sol"):
             compiler_output = compile(args.solc_version, settings.EVM_VERSION, args.source)
             if not compiler_output:
@@ -229,16 +239,66 @@ def main():
                     continue
                 if contract['abi'] and contract['evm']['bytecode']['object'] and contract['evm']['deployedBytecode']['object']:
                     source_map = SourceMap(':'.join([args.source, contract_name]), compiler_output)
-                    Fuzzer(contract_name, contract["abi"], contract['evm']['bytecode']['object'], contract['evm']['deployedBytecode']['object'], instrumented_evm, blockchain_state, solver, args, seed, source_map).run()
+                abi = contract["abi"]
+                bytecode_deploy = contract['evm']['bytecode']['object']
+                bytecode_runtime = contract['evm']['deployedBytecode']['object']
+                break
+        elif args.source.endswith(".combined.json"):
+            # try to parse the combined json
+            with open(args.source) as f:
+                combined_json = json.load(f)
+
+            contract_data = None
+            if len(combined_json['contracts']) == 1 and not args.contract:
+                n, contract_data = next(combined_json['contracts'].items())
+                logger.info("selecting contract named '%s'from combined.json input", n)
+            else:
+                if not args.contract:
+                    logger.error("ambiguous contract input - need contract name!")
+                    sys.exit(-1)
+
+                for contract_name, contract in combined_json['contracts'].items():
+                    if ":" in contract_name and ":" not in args.contract:
+                        i = contract_name.find(":")
+                        contract_name = contract_name[(i + 1):]
+                    if contract_name == args.contract:
+                        contract_data = contract
+                        break
+
+            if not contract_data:
+                log.error("could not find contract '%s' in input files '%s'!", args.contract, args.source)
+                sys.exit(-1)
+
+            for k in ('abi', 'bin', 'bin-runtime'):
+                if not k in contract_data:
+                    log.error("required field '%s' not present in combined.json for contract '%s'", 
+                              k, args.contracts)
+                    sys.exit(-1)
+
+            abi = contract_data['abi']
+            if isinstance(abi, str):
+                abi = json.loads(abi)
+
+            bytecode_deploy = contract_data['bin']
+            bytecode_runtime = contract_data['bin-runtime']
+           
+            # TODO: can we support source map?
+            source_map = None
+
         else:
             logger.error("Unsupported input file: " + args.source)
             sys.exit(-1)
+        
+        assert bytecode_runtime, "no runtime bytecode"
+        assert contract_name, "No contract name"
+
+        Fuzzer(contract_name, abi, bytecode_deploy, bytecode_runtime, instrumented_evm, blockchain_state, solver, args, seed, allow_symbolic_callers, source_map).run()
 
     if args.abi:
         with open(args.abi) as json_file:
             abi = json.load(json_file)
             runtime_bytecode = instrumented_evm.get_code(to_canonical_address(args.contract)).hex()
-            Fuzzer(args.contract, abi, None, runtime_bytecode, instrumented_evm, blockchain_state, solver, args, seed).run()
+            Fuzzer(args.contract, abi, None, runtime_bytecode, instrumented_evm, blockchain_state, solver, args, seed, allow_symbolic_callers).run()
 
 def launch_argument_parser():
     parser = argparse.ArgumentParser()
@@ -282,6 +342,9 @@ def launch_argument_parser():
     parser.add_argument("-pm", "--probability-mutation",
                         help="Size of the population.", action="store",
                         dest="probability_mutation", type=float)
+
+    parser.add_argument("--no-symbolic-caller", action="store_true",
+                        help="do not make the caller (aka. `msg.sender`) symbolic")
 
     # Miscellaneous parameters
     parser.add_argument("-r", "--results", type=str, help="Folder or JSON file where results should be stored.")

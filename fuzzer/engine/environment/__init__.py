@@ -19,4 +19,6 @@ class FuzzingEnvironment:
 
         self.data_dependencies = dict()
 
+        self.allow_symbolic_callers = True
+
         self.__dict__.update(kwargs)

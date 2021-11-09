@@ -551,7 +551,8 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
                                 self.env.instrumented_evm.accounts.append(self.env.instrumented_evm.create_fake_account(account_address))
                                 self.env.instrumented_evm.create_snapshot()
                             indv_generator.add_account_to_pool(_function_hash, _d["chromosome"][transaction_index]["account"])
-                            indv_generator.add_account_to_pool(_function_hash, account_address)
+                            if self.env.allow_symbolic_callers:
+                                indv_generator.add_account_to_pool(_function_hash, account_address)
 
                     elif str(variable).startswith("calldatacopy_"):
                         _function_hash = _d["chromosome"][transaction_index]["arguments"][0]
@@ -708,7 +709,7 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
         code_coverage_percentage = 0
         if len(self.env.overall_pcs) > 0:
             code_coverage_percentage = (len(self.env.code_coverage) / len(self.env.overall_pcs)) * 100
-        msg = 'Total code coverage: \t {:.2f}% ({}/{})'.format(code_coverage_percentage,
+        msg = 'Total code/inst coverage: \t {:.2f}% ({}/{})'.format(code_coverage_percentage,
                                                                 len(self.env.code_coverage),
                                                                 len(self.env.overall_pcs))
         self.logger.info(msg)
@@ -732,6 +733,7 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
         self.env.results["code_coverage"] = {"percentage": code_coverage_percentage,
                                              "covered": len(self.env.code_coverage),
                                              "total": len(self.env.overall_pcs),
+                                             "pc_covered": self.env.overall_pcs,
                                              "covered_with_children": self.get_coverage_with_children(
                                                  self.env.children_code_coverage,
                                                  self.env.code_coverage),
@@ -756,11 +758,14 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
                 with open(self.env.args.results, 'w') as file:
                     json.dump(results, file)
             else:
-                if os.path.exists(self.env.args.results + '/' + os.path.splitext(os.path.basename(self.env.contract_name))[0] + '.json'):
-                    with open(self.env.args.results + '/' + os.path.splitext(os.path.basename(self.env.contract_name))[0] + '.json', 'r') as file:
+                if not os.path.exists(self.env.args.results):
+                    os.makedirs(self.env.args.results)
+                p = os.path.join(self.env.args.results, os.path.splitext(os.path.basename(self.env.contract_name))[0] + '.json')
+                if os.path.exists(p):
+                    with open(p, 'r') as file:
                         results = json.load(file)
                 results[self.env.contract_name] = self.env.results
-                with open(self.env.args.results + '/' + os.path.splitext(os.path.basename(self.env.contract_name))[0] + '.json', 'w') as file:
+                with open(p + '.json', 'w') as file:
                     json.dump(results, file)
 
         diff = list(set(self.env.code_coverage).symmetric_difference(set([hex(x) for x in self.env.overall_pcs])))
