@@ -733,7 +733,7 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
         self.env.results["code_coverage"] = {"percentage": code_coverage_percentage,
                                              "covered": len(self.env.code_coverage),
                                              "total": len(self.env.overall_pcs),
-                                             "pc_covered": self.env.overall_pcs,
+                                             "pc_covered": self.env.code_coverage,
                                              "covered_with_children": self.get_coverage_with_children(
                                                  self.env.children_code_coverage,
                                                  self.env.code_coverage),
