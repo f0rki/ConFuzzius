@@ -348,8 +348,13 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
                     env.symbolic_taint_analyzer.introduce_taint(taint, instruction)
 
                 elif instruction["op"] == "CALLER":
-                    taint = BitVec("_".join(["caller", str(transaction_index)]), 256)
-                    env.symbolic_taint_analyzer.introduce_taint(taint, instruction)
+
+                    if self.env.allow_symbolic_callers:
+                        # TODO: check whether omitting the taint of the caller introduces some issue?
+                        taint = BitVec("_".join(["caller", str(transaction_index)]), 256)
+                        env.symbolic_taint_analyzer.introduce_taint(taint, instruction)
+                    else:
+                        self.logger.debug("not introducing symbolic taint for CALLER at %d", instruction['pc'])
 
                 elif instruction["op"] == "CALLDATALOAD":
                     input_index = convert_stack_value_to_int(instruction["stack"][-1])
@@ -553,6 +558,9 @@ class ExecutionTraceAnalyzer(OnTheFlyAnalysis):
                             indv_generator.add_account_to_pool(_function_hash, _d["chromosome"][transaction_index]["account"])
                             if self.env.allow_symbolic_callers:
                                 indv_generator.add_account_to_pool(_function_hash, account_address)
+                            else:
+                                self.logger.debug("skipping adding address to pool -> %s", account_address)
+                                # self.logger.debug("skipping adding address to pool -> %s", _d["chromosome"][transaction_index]["account"])
 
                     elif str(variable).startswith("calldatacopy_"):
                         _function_hash = _d["chromosome"][transaction_index]["arguments"][0]
