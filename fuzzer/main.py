@@ -177,7 +177,7 @@ def main():
     print_logo()
     args = launch_argument_parser()
 
-    logger = initialize_logger("Main    ")
+    logger = initialize_logger("Main    ", settings.LOGGING_LEVEL)
 
     # Check if contract has already been analyzed
     if args.results and os.path.exists(args.results):
@@ -375,6 +375,27 @@ def launch_argument_parser():
     parser.add_argument("--disable-detectors", type=str)
     parser.add_argument("--enable-detectors", type=str)
 
+    def is_loglevel(v):
+        if isinstance(v, int):
+            return v
+        elif isinstance(v, str):
+            try:
+                lvl = int(v)
+                return lvl
+            except ValueError:
+                pass
+            try:
+                lvl = getattr(logging, v.upper())
+                if isinstance(lvl, int):
+                    return lvl
+            except AttributeError:
+                pass
+            raise ValueError("invalid log level '{}'".format(v.upper()))
+        else:
+            raise ValueError("invalid log level '{!r}' of type {}".format(v, type(v)))
+
+    parser.add_argument("--loglevel", type=is_loglevel)
+
     version = "ConFuzzius - Version 0.0.1 - "
     version += "\"By three methods we may learn wisdom:\n"
     version += "First, by reflection, which is noblest;\n"
@@ -386,6 +407,9 @@ def launch_argument_parser():
 
     if not args.contract:
         args.contract = ""
+
+    if args.loglevel:
+        settings.LOGGING_LEVEL = args.loglevel
 
     if args.source and args.contract.startswith("0x"):
         parser.error("--source requires --contract to be a name, not an address.")

@@ -11,16 +11,19 @@ import eth_utils
 import subprocess
 
 from web3 import Web3
-from .settings import LOGGING_LEVEL
 
-def initialize_logger(name):
+from utils import settings
+
+def initialize_logger(name, level=None):
+    if level is None:
+        level = settings.LOGGING_LEVEL
     logger = logging.getLogger(name)
     logger.title = lambda *a: logger.info(*[bold(x) for x in a])
     logger_error = logger.error
     logger.error = lambda *a: logger_error(*[red(bold(x)) for x in a])
     logger_warning = logger.warning
     logger.warning = lambda *a: logger_warning(*[red(bold(x)) for x in a])
-    logger.setLevel(level=LOGGING_LEVEL)
+    logger.setLevel(level)
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     return logger
 
