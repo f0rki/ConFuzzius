@@ -250,8 +250,8 @@ def main():
 
             contract_data = None
             if len(combined_json['contracts']) == 1 and not args.contract:
-                n, contract_data = next(combined_json['contracts'].items())
-                logger.info("selecting contract named '%s'from combined.json input", n)
+                contract_name, contract_data = next(iter(combined_json['contracts'].items()))
+                logger.info("selecting contract named '%s'from combined.json input", contract_name)
             else:
                 if not args.contract:
                     logger.error("ambiguous contract input - need contract name!")
