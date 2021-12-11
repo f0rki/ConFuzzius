@@ -114,7 +114,7 @@ class Fuzzer:
 
             if not contract_address:
                 if "constructor" not in self.interface:
-                    result = self.instrumented_evm.deploy_contract(self.instrumented_evm.accounts[0], self.deployement_bytecode)
+                    result = self.instrumented_evm.deploy_contract(self.instrumented_evm.accounts[0], self.deployement_bytecode, gas=settings.GAS_LIMIT * 100)
                     if result.is_error:
                         logger.error("Problem while deploying contract %s using account %s. Error message: %s", self.contract_name, self.instrumented_evm.accounts[0], result._error)
                         sys.exit(-2)
