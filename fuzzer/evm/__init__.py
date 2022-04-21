@@ -20,7 +20,7 @@ from eth.db.atomic import AtomicDB
 from eth.db.backends.memory import MemoryDB
 from eth.rlp.accounts import Account
 from eth.rlp.headers import BlockHeader
-from eth.tools.logging import DEBUG2_LEVEL_NUM
+# from eth.tools.logging import DEBUG2_LEVEL_NUM
 from eth.validation import validate_uint256
 from eth.vm.spoof import SpoofTransaction
 from eth_utils import to_canonical_address, decode_hex, encode_hex
@@ -114,7 +114,7 @@ class InstrumentedEVM:
     def execute(self, tx, debug=False):
         if debug:
             logging.getLogger('eth.vm.computation.Computation')
-            logging.basicConfig(level=DEBUG2_LEVEL_NUM)
+            logging.basicConfig(level=logging.DEBUG)
         return self.vm.state.apply_transaction(tx)
 
     def reset(self):

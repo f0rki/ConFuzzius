@@ -11,9 +11,10 @@ from eth_utils import to_bytes, to_normalized_address, to_hex
 
 from eth.chains.mainnet import MainnetHomesteadVM
 from eth.constants import BLANK_ROOT_HASH, EMPTY_SHA3
-from eth.db import BaseAtomicDB
-from eth.db.account import BaseAccountDB
-from eth.db.typing import JournalDBCheckpoint
+from eth.db.backends.base import BaseAtomicDB
+# from eth.db.account import BaseAccountDB
+from eth.db.account import AccountDatabaseAPI
+from eth.typing import JournalDBCheckpoint
 from eth.rlp.accounts import Account
 from eth.tools._utils.normalization import to_int
 from eth.validation import validate_uint256, validate_canonical_address, validate_is_bytes
@@ -41,7 +42,7 @@ global BLOCK_ID
 BLOCK_ID = "latest"
 
 # STORAGE EMULATOR
-class EmulatorAccountDB(BaseAccountDB):
+class EmulatorAccountDB(AccountDatabaseAPI):
     def __init__(self, db: BaseAtomicDB, state_root: Hash32 = BLANK_ROOT_HASH) -> None:
         if settings.REMOTE_FUZZING and settings.RPC_HOST and settings.RPC_PORT:
             self._w3 = Web3(HTTPProvider('http://%s:%s' % (settings.RPC_HOST, settings.RPC_PORT)))
